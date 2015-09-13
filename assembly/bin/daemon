@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+COMMANDS="start stop status killall"
+USAGE="Usage: $0 command -Dproperty=value -Dproperty=value"
+
+if [ "$#" == "0" ]; then
+        echo "$USAGE"
+        exit 1
+fi
+
+CMD=$1
+shift
+ARGS=$@
+
+NotValidCommand() {
+    for item in $COMMANDS; do
+        if [ "$1" == "$item" ]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+if NotValidCommand $CMD; then
+    echo "$USAGE"
+    echo "Supported commands: $COMMANDS"
+    exit 1
+fi
+
+BIN=`dirname "$0"`
+pushd $BIN/../log 1> /dev/null
+
+. ../bin/config
+
+if [ "$PIDFILE" == "" ]; then
+   die "PIDFILE is empty"
+fi
+
+if [ "$MAIN" == "" ]; then
+   die "MAIN is empty"
+fi
+
+if [ "$DAEMON_NAME" == "" ]; then
+   die "DAEMON_NAME is empty"
+fi
+
+start() {
+    echo  "Starting $DAEMON_NAME ... "
+    if [ -f "$PIDFILE" ]; then
+        echo "$DAEMON_NAME is running under the pid "$(cat "$PIDFILE")
+        echo "if it is not actually running, delete pidfile $PWD/$PIDFILE"
+        exit 1
+    fi
+    nohup "$JAVA" -server -classpath ${CLASSPATH} ${JAVA_OPTS} ${ARGS} -DpidFile="$PIDFILE" -Duser="$USER" -Dhost=`hostname` "$MAIN" &> "$DAEMON_NAME.out" &
+    /bin/echo -n $! > "$PIDFILE"
+    sleep 5
+    chmod 664 "$DAEMON_NAME.out"
+    echo "Started under the pid "$(cat "$PIDFILE")
+}
+
+stop() {
+    echo "Stopping $DAEMON_NAME ... "
+    if [ ! -f "$PIDFILE" ]; then
+        echo "$DAEMON_NAME is not running"
+        exit 1
+    else
+        kill -2 $(cat "$PIDFILE")
+        sleep 1
+        kill -9 $(cat "$PIDFILE")
+        rm "$PIDFILE"
+        echo "Stopped"
+    fi
+}
+
+status() {
+    if [ ! -f "$PIDFILE" ]; then
+        echo "$DAEMON_NAME is not running"
+        exit 5
+    else
+        echo "$DAEMON_NAME is running under the pid "$(cat "$PIDFILE")
+    fi
+}
+
+killall() {
+    ps -fA | grep "$MAIN" | awk '{print $2}' | xargs kill -9
+    rm "$PIDFILE"
+    echo "Killed $DAEMON_NAMEs"
+}
+
+case "$CMD" in
+
+start)  start
+    ;;
+stop)  stop
+    ;;
+status)  status
+    ;;
+killall)  killall
+    ;;
+*) echo "Unknown command $CMD"
+   ;;
+esac
+
+
+popd 1> /dev/null
+
+
