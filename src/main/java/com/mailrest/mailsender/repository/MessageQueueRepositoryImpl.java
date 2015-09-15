@@ -1,4 +1,8 @@
-package com.mailrest.mailsender;
+/*
+ *      Copyright (C) 2015 Noorq, Inc.
+ *      All rights reserved.
+ */
+package com.mailrest.mailsender.repository;
 
 import com.mailrest.maildal.config.MailDalConfig;
 import com.mailrest.maildal.config.RepositoryConfig;

@@ -1,13 +1,17 @@
+/*
+ *      Copyright (C) 2015 Noorq, Inc.
+ *      All rights reserved.
+ */
 package com.mailrest.mailsender;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.mailrest.mailsender.service.DeliveryResult;
 import com.mailrest.mailsender.service.SmtpMessage;
 import com.mailrest.mailsender.service.SmtpServer;
 import com.mailrest.mailsender.service.SmtpServerImpl;
-import com.mailrest.mailsender.service.SmtpServerStatus;
 import com.mailrest.mailsender.support.DoubleShortter;
 
 public class SendMailApp {
@@ -16,14 +20,21 @@ public class SendMailApp {
 	private static final String SYS_TO = System.getProperty("to");
 	private static final String SYS_SUBJECT = System.getProperty("subject");
 	private static final String SYS_BODY = System.getProperty("body");
-	private static final String SYS_SHOW_MIME = System.getProperty("showMime");
+
+	private final SmtpServer smtpServer;
 	
-	private SmtpServer smtpServer = new SmtpServerImpl();
+	public SendMailApp(SenderConfig config) {
+		this.smtpServer = new SmtpServerImpl(config.getHost());
+	}
+	
 	
 	public static void main(String[] args) {
 		
+		SenderConfig config = new SenderConfig();
+		System.out.println("sendmail started by " + config.getUser() + " on " + config.getHost());
+		
 		try {
-			new SendMailApp().run();
+			new SendMailApp(config).run();
 		}
 		catch(Exception e) {
 			e.printStackTrace(System.err);
@@ -50,12 +61,12 @@ public class SendMailApp {
 		msg.setBody(body);
 		
 		long time0 = System.currentTimeMillis();
-		SmtpServerStatus status = smtpServer.send(msg);
+		DeliveryResult result = smtpServer.send(msg);
 		long time1 = System.currentTimeMillis();
 		
 		double seconds = ((double) (time1 - time0)) / 1000;
 		
-		System.out.println("status = " + status + ", seconds = " + DoubleShortter.shortter(seconds));
+		System.out.println("status = " + result.description() + ", seconds = " + DoubleShortter.shortter(seconds));
 		
 	}
 

@@ -1,8 +1,16 @@
+/*
+ *      Copyright (C) 2015 Noorq, Inc.
+ *      All rights reserved.
+ */
 package com.mailrest.mailsender;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.URL;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -17,7 +25,9 @@ public final class SenderConfig {
 	public static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
 
 	public static final String BUCKET_ID = "mailsender.bucket.id";
-	public static final String PULL_INTERVAL_SEC = "mailsender.pull.interval.seconds";
+	public static final String PULL_INTERVAL_SECONDS = "mailsender.pull.interval.seconds";
+	public static final String REPEAT_INTERVAL_SECONDS = "mailsender.repeat.interval.seconds";
+	public static final String REPEAT_MAX_TRIES = "mailsender.repeat.max.tries";
 
 	public static final String SENDER_CONF = "../conf/mailsender.conf";
 
@@ -26,6 +36,10 @@ public final class SenderConfig {
 
 	private final Properties props = new Properties();
 
+	private final String host;
+	private final String jvmId;
+	private final String expernalIp;
+	
 	public SenderConfig() {
 
 		File senderConf = new File(SENDER_CONF);
@@ -42,12 +56,31 @@ public final class SenderConfig {
 					+ senderConf.getAbsolutePath(), e);
 		}
 
+		host = detectHost();
+		jvmId = detectJmvId(host);
+		expernalIp = detectIp();
 	}
 
 	public int getPullIntervalSec() {
-		String val = props.getProperty(PULL_INTERVAL_SEC);
+		String val = props.getProperty(PULL_INTERVAL_SECONDS);
 		if (val == null) {
 			return Defaults.DEF_PULL_INTERVAL_SECONDS;
+		}
+		return Integer.parseInt(val);
+	}
+	
+	public int getRepeatIntervalSec() {
+		String val = props.getProperty(REPEAT_INTERVAL_SECONDS);
+		if (val == null) {
+			return Defaults.DEF_REPEAT_INTERVAL_SECONDS;
+		}
+		return Integer.parseInt(val);
+	}
+	
+	public int getRepeatMaxTries() {
+		String val = props.getProperty(REPEAT_MAX_TRIES);
+		if (val == null) {
+			return Defaults.DEF_REPEAT_MAX_TRIES;
 		}
 		return Integer.parseInt(val);
 	}
@@ -73,7 +106,53 @@ public final class SenderConfig {
 	}
 
 	public String getHost() {
-		return SYS_HOST;
+		return host;
+	}
+	
+	public String getJvmId() {
+		return jvmId;
+	}
+	
+	public String getExpernalIp() {
+		return expernalIp;
+	}
+	
+	private String detectIp() {
+		try {
+			URL publicIp = new URL("http://checkip.amazonaws.com");
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+			                publicIp.openStream()));
+
+			return in.readLine();
+		} catch (Exception e) {
+			logger.error("fail get ip from aws", e);
+			return "127.0.0.1";
+		}
+	}
+	
+	private  String detectHost() {
+		String host = SYS_HOST;
+		try {
+			host = SYS_HOST != null ? SYS_HOST : InetAddress.getLocalHost().getCanonicalHostName();
+			if (host.indexOf(".") == -1) {
+				// we need to have full host name
+				host = host + ".com";
+			}
+		} catch (Exception e) {
+			logger.error("fail get localhost", e);
+		}
+		return host;
+	}
+	
+	private String detectJmvId(String defaultJvmId) {
+		try {
+			java.lang.management.RuntimeMXBean runtime = java.lang.management.ManagementFactory
+					.getRuntimeMXBean();			
+			return runtime.getName();
+		} catch (Exception e) {
+			logger.error( "fail to get jvm id", e);
+			return defaultJvmId;
+		}
 	}
 
 }

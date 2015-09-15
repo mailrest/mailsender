@@ -1,6 +1,10 @@
+/*
+ *      Copyright (C) 2015 Noorq, Inc.
+ *      All rights reserved.
+ */
 package com.mailrest.mailsender.service;
 
-import java.util.Collection;
+import java.util.List;
 
 import javax.mail.URLName;
 
@@ -8,6 +12,6 @@ public interface DNSResolver {
 
   public static final String SMTPScheme = "smtp://";
   
-  public Collection<URLName> getMXRecordsForHost(String hostName); 
+  public List<URLName> getMXRecordsForHost(String hostName); 
 
 }
