@@ -91,6 +91,7 @@ public class SmtpServerImpl implements SmtpServer {
 				result.setMxHost(mx.getHost());
 				result.setCode(DeliveryCode.OK);
 				result.setMessage(null);
+				break;
 				
 			} catch (MailException e) {
 				logger.error("send mail on " + mx.getHost(), e);
