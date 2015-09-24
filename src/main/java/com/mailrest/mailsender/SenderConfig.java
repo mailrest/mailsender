@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public final class SenderConfig {
 	private final String host;
 	private final String jvmId;
 	private final String externalIp;
-	
+
 	public SenderConfig() {
 
 		File senderConf = new File(SENDER_CONF);
@@ -59,6 +60,8 @@ public final class SenderConfig {
 		host = detectHost();
 		jvmId = detectJmvId(host);
 		externalIp = detectExternalIp();
+		
+		validateHostIp();
 	}
 
 	public int getPullIntervalSec() {
@@ -68,7 +71,7 @@ public final class SenderConfig {
 		}
 		return Integer.parseInt(val);
 	}
-	
+
 	public int getRepeatIntervalSec() {
 		String val = props.getProperty(REPEAT_INTERVAL_SECONDS);
 		if (val == null) {
@@ -76,7 +79,7 @@ public final class SenderConfig {
 		}
 		return Integer.parseInt(val);
 	}
-	
+
 	public int getRepeatMaxTries() {
 		String val = props.getProperty(REPEAT_MAX_TRIES);
 		if (val == null) {
@@ -90,13 +93,15 @@ public final class SenderConfig {
 	}
 
 	public String getCassandraKeyspace() {
-		return props.getProperty(CASSANDRA_KEYSPACE, Defaults.DEF_CASSANDRA_KEYSPACE);
+		return props.getProperty(CASSANDRA_KEYSPACE,
+				Defaults.DEF_CASSANDRA_KEYSPACE);
 	}
-	
+
 	public int getBucketId() {
 		String val = props.getProperty(BUCKET_ID);
 		if (val == null) {
-			throw new IllegalStateException(BUCKET_ID + " not found in mailsender.conf");
+			throw new IllegalStateException(BUCKET_ID
+					+ " not found in mailsender.conf");
 		}
 		return Integer.parseInt(val);
 	}
@@ -108,20 +113,20 @@ public final class SenderConfig {
 	public String getHost() {
 		return host;
 	}
-	
+
 	public String getJvmId() {
 		return jvmId;
 	}
-	
+
 	public String getExternalIp() {
 		return externalIp;
 	}
-	
+
 	private String detectExternalIp() {
 		try {
 			URL publicIp = new URL("http://checkip.amazonaws.com");
 			BufferedReader in = new BufferedReader(new InputStreamReader(
-			                publicIp.openStream()));
+					publicIp.openStream()));
 
 			return in.readLine();
 		} catch (Exception e) {
@@ -129,11 +134,12 @@ public final class SenderConfig {
 			return "127.0.0.1";
 		}
 	}
-	
-	private  String detectHost() {
+
+	private String detectHost() {
 		String host = SYS_HOST;
 		try {
-			host = SYS_HOST != null ? SYS_HOST : InetAddress.getLocalHost().getCanonicalHostName();
+			host = SYS_HOST != null ? SYS_HOST : InetAddress.getLocalHost()
+					.getCanonicalHostName();
 			if (host.indexOf(".") == -1) {
 				// we need to have full host name
 				host = host + ".com";
@@ -143,16 +149,29 @@ public final class SenderConfig {
 		}
 		return host;
 	}
-	
+
 	private String detectJmvId(String defaultJvmId) {
 		try {
 			java.lang.management.RuntimeMXBean runtime = java.lang.management.ManagementFactory
-					.getRuntimeMXBean();			
+					.getRuntimeMXBean();
 			return runtime.getName();
 		} catch (Exception e) {
-			logger.error( "fail to get jvm id", e);
+			logger.error("fail to get jvm id", e);
 			return defaultJvmId;
 		}
 	}
 
+	private void validateHostIp() {
+		try {
+			for(InetAddress addr : InetAddress.getAllByName(host)) {
+			   if (externalIp.equals(addr.getHostAddress())) {
+				   return;
+			   }
+			}
+			throw new IllegalStateException("Error: Host " + host + " does not have external ip " + externalIp);
+		} catch (UnknownHostException e) {
+			throw new IllegalStateException("fail to resolve host " + host, e);
+		}
+		
+	}
 }
