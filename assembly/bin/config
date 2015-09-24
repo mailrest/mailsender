@@ -38,6 +38,12 @@ else
   JAVA=$JAVA_HOME/bin/java
 fi
 
+if [ "$MAILREST_HOST" == "" ]; then
+  MAILREST_HOST=`hostname`
+  echo "Warning: MAILREST_HOST is empty, setting $MAILREST_HOST"
+fi
+
+export MAILREST_HOST
 export CLASSPATH
 export JAVA
 export JAVA_OPTS

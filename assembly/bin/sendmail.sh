@@ -7,6 +7,6 @@ pushd $BIN/../log 1> /dev/null
 
 MAIN=com.mailrest.mailsender.SendMailApp
 
-"$JAVA" -server -classpath ${CLASSPATH} ${JAVA_OPTS} ${ARGS} -Duser="$USER" -Dhost=`hostname` "$MAIN" $@
+"$JAVA" -server -classpath ${CLASSPATH} ${JAVA_OPTS} ${ARGS} -Duser="$USER" -Dhost="$MAILREST_HOST" "$MAIN" $@
 
 popd 1> /dev/null

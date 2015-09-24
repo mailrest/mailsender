@@ -9,7 +9,7 @@ public final class Sender implements MessageSender {
 	
 	public Sender(SenderConfig config) {
 		this.senderName = config.getJvmId();
-		this.senderIp = config.getExpernalIp();
+		this.senderIp = config.getExternalIp();
 	}
 	
 	@Override

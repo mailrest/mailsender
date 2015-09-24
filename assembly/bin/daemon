@@ -51,7 +51,7 @@ start() {
         echo "if it is not actually running, delete pidfile $PWD/$PIDFILE"
         exit 1
     fi
-    nohup "$JAVA" -server -classpath ${CLASSPATH} ${JAVA_OPTS} ${ARGS} -DpidFile="$PIDFILE" -Duser="$USER" -Dhost=`hostname` "$MAIN" &> "$DAEMON_NAME.out" &
+    nohup "$JAVA" -server -classpath ${CLASSPATH} ${JAVA_OPTS} ${ARGS} -DpidFile="$PIDFILE" -Duser="$USER" -Dhost="$MAILREST_HOST" "$MAIN" &> "$DAEMON_NAME.out" &
     /bin/echo -n $! > "$PIDFILE"
     sleep 5
     chmod 664 "$DAEMON_NAME.out"

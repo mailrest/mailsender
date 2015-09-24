@@ -170,7 +170,7 @@ public class SenderDaemon {
 
 		SenderConfig config = new SenderConfig();
 
-		System.out.println("MailSender daemon started by " + config.getUser() + " on " + config.getHost());
+		System.out.println("MailSender daemon started by " + config.getUser() + " on " + config.getHost() + " external_ip " + config.getExternalIp());
 
 		System.out.println("interval = " + config.getPullIntervalSec());
 		

@@ -38,7 +38,7 @@ public final class SenderConfig {
 
 	private final String host;
 	private final String jvmId;
-	private final String expernalIp;
+	private final String externalIp;
 	
 	public SenderConfig() {
 
@@ -58,7 +58,7 @@ public final class SenderConfig {
 
 		host = detectHost();
 		jvmId = detectJmvId(host);
-		expernalIp = detectIp();
+		externalIp = detectExternalIp();
 	}
 
 	public int getPullIntervalSec() {
@@ -113,11 +113,11 @@ public final class SenderConfig {
 		return jvmId;
 	}
 	
-	public String getExpernalIp() {
-		return expernalIp;
+	public String getExternalIp() {
+		return externalIp;
 	}
 	
-	private String detectIp() {
+	private String detectExternalIp() {
 		try {
 			URL publicIp = new URL("http://checkip.amazonaws.com");
 			BufferedReader in = new BufferedReader(new InputStreamReader(
