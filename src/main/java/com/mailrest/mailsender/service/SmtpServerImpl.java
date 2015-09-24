@@ -7,8 +7,6 @@ package com.mailrest.mailsender.service;
 import java.util.Collection;
 
 import javax.mail.Message.RecipientType;
-import javax.mail.event.TransportEvent;
-import javax.mail.event.TransportListener;
 import javax.mail.URLName;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -84,6 +82,8 @@ public class SmtpServerImpl implements SmtpServer {
 				Mailer mailer = new Mailer(mx.getHost(), DEFAULT_PORT, null,
 						null, TransportStrategy.SMTP_PLAIN);
 
+				mailer.getSession().getProperties().setProperty("mail.smtp.localhost", senderHost);
+				
 				mailer.setDebug(true);
 				
 				mailer.sendMail(email);
