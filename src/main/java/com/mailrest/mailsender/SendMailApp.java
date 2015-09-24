@@ -46,7 +46,7 @@ public class SendMailApp {
 	private void run() throws IOException {
 
 		SenderConfig config = new SenderConfig();
-		System.out.println("sendmail started by " + config.getUser() + " on " + config.getHost());
+		System.out.println("sendmail started by " + config.getUser() + " on " + config.getHost() + " ip " + config.getExpernalIp());
 		
 		SmtpMessage msg = new SmtpMessage();
 		
