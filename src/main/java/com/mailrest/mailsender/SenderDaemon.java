@@ -118,19 +118,13 @@ public class SenderDaemon {
 		
 		SmtpMessage smtpMessage = new SmtpMessage();
 		
-		Recipient from;
-		try {
-			from = Recipients.parseSingle(message.fromRecipient());
-		}
-		catch(IllegalArgumentException e) {
-			return DeliveryResult.of(DeliveryCode.INVALID_FROM_ADDRESS);
+		MessageRecipient from = message.fromRecipient();
+		
+		if (from.recipientName() != null) {
+			smtpMessage.setFromName(from.recipientName());
 		}
 		
-		if (from.getName().isPresent()) {
-			smtpMessage.setFromName(from.getName().get());
-		}
-		
-		smtpMessage.setFromAddress(from.getEmail());
+		smtpMessage.setFromAddress(from.recipientEmail());
 		
 		MessageRecipient to = msgQueue.recipient();
 		
